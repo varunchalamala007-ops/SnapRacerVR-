@@ -295,8 +295,6 @@ This game was created as a submission to the **Snapchat Games Lensathon 2025**. 
 
 <div align="center">
 
-**[Play Now](https://file:///Users/varunchalamalasetti/Downloads/index.html)** • **[Report Bug](https://github.com/yourusername/snapchat-vr-racer/issues)** • **[Request Feature](https://github.com/yourusername/snapchat-vr-racer/issues)**
-
 Made with ❤️ for the Snapchat Games Lensathon
 
 ⭐ Star this repo if you enjoyed the game!
