@@ -278,17 +278,7 @@ See `LICENSE` file for full details.
 - [ ] Customizable vehicles
 - [ ] Global leaderboard
 
----
-
-## 💬 Feedback
-
-Found a bug? Have a suggestion? Want to share your high score?
-
-- Open an [Issue](https://github.com/yourusername/snapchat-vr-racer/issues)
-- Start a [Discussion](https://github.com/yourusername/snapchat-vr-racer/discussions)
-- Tweet at me: [@yourhandle](https://twitter.com/yourhandle)
-
----
+--
 
 ## 🏁 Final Notes
 
@@ -305,7 +295,7 @@ This game was created as a submission to the **Snapchat Games Lensathon 2025**. 
 
 <div align="center">
 
-**[Play Now](https://yourusername.github.io/snapchat-vr-racer)** • **[Report Bug](https://github.com/yourusername/snapchat-vr-racer/issues)** • **[Request Feature](https://github.com/yourusername/snapchat-vr-racer/issues)**
+**[Play Now](file:///Users/varunchalamalasetti/Downloads/index.html)** • **[Report Bug](https://github.com/yourusername/snapchat-vr-racer/issues)** • **[Request Feature](https://github.com/yourusername/snapchat-vr-racer/issues)**
 
 Made with ❤️ for the Snapchat Games Lensathon
 
