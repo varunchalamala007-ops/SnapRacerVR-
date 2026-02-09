@@ -6,7 +6,7 @@
 
 An immersive 3D endless racing game built for the **Snapchat Games Lensathon** challenge. Experience high-speed VR-style racing with stunning neon aesthetics and addictive gameplay.
 
-## 🎮 [PLAY NOW →](https://yourusername.github.io/snapchat-vr-racer)
+## 🎮 [PLAY NOW →](https://file:///Users/varunchalamalasetti/Downloads/index.html)
 
 > **Replace `yourusername` with your actual GitHub username**
 
