@@ -53,23 +53,6 @@ An immersive 3D endless racing game built for the **Snapchat Games Lensathon** c
 
 ---
 
-## 🚀 Quick Start
-
-### Play Online
-Just visit the live demo: **[Play Snap Racer VR](https://yourusername.github.io/snapchat-vr-racer)**
-
-### Run Locally
-1. Download `index.html`
-2. Open it in any modern browser
-3. That's it! No build process needed.
-
-### Deploy Your Own
-```bash
-# Fork this repo
-# Enable GitHub Pages in Settings → Pages
-# Your game will be live at: yourusername.github.io/snapchat-vr-racer
-```
-
 ---
 
 ## 🛠️ Tech Stack
