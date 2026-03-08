@@ -1,0 +1,1015 @@
+import * as THREE from "three";
+
+// ═══════════════════════════════════════════════════════════════════
+// PLANET TEXTURE FACTORY
+// ═══════════════════════════════════════════════════════════════════
+function makePlanetTexture(type) {
+  const size = 1024;
+  const c = document.createElement("canvas");
+  c.width = c.height = size;
+  const ctx = c.getContext("2d");
+  const r = size / 2;
+
+  if (type === "jupiter") {
+    const base = ctx.createLinearGradient(0, 0, 0, size);
+    base.addColorStop(0,   "#C88B3A");
+    base.addColorStop(0.15,"#E8C080");
+    base.addColorStop(0.3, "#9B5523");
+    base.addColorStop(0.45,"#D4A86A");
+    base.addColorStop(0.6, "#8B4010");
+    base.addColorStop(0.75,"#C07840");
+    base.addColorStop(0.9, "#A05820");
+    base.addColorStop(1,   "#C88B3A");
+    ctx.fillStyle = base; ctx.fillRect(0, 0, size, size);
+    // Bands with wavy edges
+    const bands = [
+      {y:0.05,h:0.055,col:"rgba(60,25,5,0.8)"},{y:0.12,h:0.04,col:"rgba(180,120,60,0.5)"},
+      {y:0.18,h:0.07,col:"rgba(50,20,3,0.85)"},{y:0.27,h:0.035,col:"rgba(200,150,80,0.45)"},
+      {y:0.33,h:0.08,col:"rgba(55,22,4,0.82)"},{y:0.43,h:0.04,col:"rgba(190,140,70,0.4)"},
+      {y:0.50,h:0.075,col:"rgba(48,18,3,0.8)"},{y:0.60,h:0.04,col:"rgba(170,120,55,0.5)"},
+      {y:0.66,h:0.07,col:"rgba(52,20,4,0.78)"},{y:0.76,h:0.035,col:"rgba(185,130,65,0.45)"},
+      {y:0.82,h:0.065,col:"rgba(50,19,3,0.75)"},{y:0.90,h:0.04,col:"rgba(160,110,50,0.4)"},
+    ];
+    bands.forEach(b => {
+      // Wavy band using bezier-like path
+      ctx.beginPath();
+      ctx.moveTo(0, b.y * size);
+      for (let x = 0; x <= size; x += 8) {
+        const wave = Math.sin(x * 0.02 + b.y * 10) * 4 + Math.sin(x * 0.05) * 2;
+        ctx.lineTo(x, b.y * size + wave);
+      }
+      for (let x = size; x >= 0; x -= 8) {
+        const wave = Math.sin(x * 0.02 + b.y * 10) * 4 + Math.sin(x * 0.05) * 2;
+        ctx.lineTo(x, (b.y + b.h) * size + wave);
+      }
+      ctx.closePath();
+      ctx.fillStyle = b.col; ctx.fill();
+    });
+    // Great Red Spot — large oval
+    const spotX = size * 0.62, spotY = size * 0.55;
+    const spotRX = size * 0.13, spotRY = size * 0.075;
+    // Outer swirl rings
+    for (let ring = 3; ring >= 0; ring--) {
+      const rg = ctx.createRadialGradient(spotX, spotY, 0, spotX, spotY, spotRX*(1+ring*0.25));
+      rg.addColorStop(0, ring===0?"rgba(220,60,20,0.95)":"rgba(180,40,10,0)");
+      rg.addColorStop(0.6, `rgba(${160-ring*20},${30+ring*5},${8+ring*2},${0.6-ring*0.12})`);
+      rg.addColorStop(1, "rgba(0,0,0,0)");
+      ctx.save();
+      ctx.translate(spotX, spotY);
+      ctx.scale(1, spotRY/spotRX);
+      ctx.beginPath();
+      ctx.arc(0, 0, spotRX*(1+ring*0.25), 0, Math.PI*2);
+      ctx.fillStyle = rg; ctx.fill();
+      ctx.restore();
+    }
+    // Swirl arcs around the spot
+    ctx.strokeStyle = "rgba(160,35,10,0.55)";
+    for (let a = 0; a < 3; a++) {
+      ctx.lineWidth = 2.5 - a * 0.5;
+      ctx.beginPath();
+      ctx.save();
+      ctx.translate(spotX, spotY);
+      ctx.scale(1, 0.58);
+      ctx.arc(0, 0, spotRX * (1.3 + a * 0.3), -Math.PI*0.5, Math.PI*1.5);
+      ctx.restore();
+      ctx.stroke();
+    }
+
+  } else if (type === "saturn") {
+    const base = ctx.createLinearGradient(0, 0, 0, size);
+    base.addColorStop(0,   "#F0E0B0");
+    base.addColorStop(0.25,"#D8C090");
+    base.addColorStop(0.5, "#C8A870");
+    base.addColorStop(0.75,"#B89050");
+    base.addColorStop(1,   "#A08040");
+    ctx.fillStyle = base; ctx.fillRect(0, 0, size, size);
+    [{y:0.1,h:0.05,col:"rgba(140,110,55,0.45)"},{y:0.22,h:0.04,col:"rgba(100,75,30,0.38)"},
+     {y:0.35,h:0.055,col:"rgba(150,120,60,0.4)"},{y:0.50,h:0.04,col:"rgba(90,65,25,0.35)"},
+     {y:0.62,h:0.05,col:"rgba(130,100,50,0.4)"},{y:0.75,h:0.04,col:"rgba(110,80,35,0.35)"},
+     {y:0.87,h:0.05,col:"rgba(120,90,40,0.38)"}].forEach(b => {
+      ctx.fillStyle = b.col; ctx.fillRect(0, b.y*size, size, b.h*size);
+    });
+
+  } else if (type === "neptune") {
+    const base = ctx.createLinearGradient(0, 0, 0, size);
+    base.addColorStop(0,   "#1833FF");
+    base.addColorStop(0.3, "#0A20CC");
+    base.addColorStop(0.6, "#0810AA");
+    base.addColorStop(1,   "#050888");
+    ctx.fillStyle = base; ctx.fillRect(0, 0, size, size);
+    [{y:0.1,h:0.06,col:"rgba(80,110,255,0.45)"},{y:0.25,h:0.05,col:"rgba(30,55,200,0.38)"},
+     {y:0.38,h:0.06,col:"rgba(100,140,255,0.4)"},{y:0.55,h:0.05,col:"rgba(20,45,180,0.35)"},
+     {y:0.70,h:0.06,col:"rgba(70,100,230,0.4)"},{y:0.85,h:0.05,col:"rgba(40,70,200,0.35)"}].forEach(b => {
+      ctx.fillStyle = b.col; ctx.fillRect(0, b.y*size, size, b.h*size);
+    });
+    // Great Dark Spot
+    const dsx = size*0.45, dsy = size*0.42;
+    const dsg = ctx.createRadialGradient(dsx, dsy, 0, dsx, dsy, size*0.12);
+    dsg.addColorStop(0, "rgba(10,30,180,0.85)");
+    dsg.addColorStop(0.5,"rgba(5,15,140,0.6)");
+    dsg.addColorStop(1,"rgba(0,0,0,0)");
+    ctx.save(); ctx.translate(dsx,dsy); ctx.scale(1.4,1);
+    ctx.beginPath(); ctx.arc(0,0,size*0.1,0,Math.PI*2);
+    ctx.fillStyle=dsg; ctx.fill(); ctx.restore();
+    // Bright streaks
+    ctx.strokeStyle="rgba(150,190,255,0.3)"; ctx.lineWidth=3;
+    for(let i=0;i<4;i++){
+      ctx.beginPath();
+      ctx.moveTo(0,(0.12+i*0.22)*size);
+      ctx.bezierCurveTo(size*0.3,(0.12+i*0.22+0.02)*size,size*0.7,(0.12+i*0.22-0.02)*size,size,(0.12+i*0.22)*size);
+      ctx.stroke();
+    }
+
+  } else if (type === "earth_like") {
+    const base = ctx.createLinearGradient(0,0,0,size);
+    base.addColorStop(0,"#1A5FAA"); base.addColorStop(0.5,"#1050AA"); base.addColorStop(1,"#0A3080");
+    ctx.fillStyle=base; ctx.fillRect(0,0,size,size);
+    // Continents
+    [{x:0.18,y:0.25,w:0.22,h:0.30,col:"#2A8840"},{x:0.55,y:0.20,w:0.28,h:0.28,col:"#228833"},
+     {x:0.25,y:0.58,w:0.18,h:0.22,col:"#309945"},{x:0.65,y:0.55,w:0.15,h:0.20,col:"#1A8830"},
+     {x:0.42,y:0.15,w:0.10,h:0.12,col:"#25903C"},{x:0.72,y:0.72,w:0.12,h:0.15,col:"#20882E"}].forEach(l=>{
+      ctx.fillStyle=l.col;
+      ctx.beginPath();
+      ctx.ellipse(l.x*size,l.y*size,l.w*size*0.5,l.h*size*0.5,Math.random()*0.8,0,Math.PI*2);
+      ctx.fill();
+      // Coast detail
+      ctx.strokeStyle="rgba(50,180,80,0.4)"; ctx.lineWidth=2;
+      ctx.beginPath();
+      ctx.ellipse(l.x*size,l.y*size,l.w*size*0.52,l.h*size*0.52,Math.random()*0.8,0,Math.PI*2);
+      ctx.stroke();
+    });
+    // Polar ice caps
+    [{y:0,h:0.12,grad:["rgba(240,248,255,0.95)","rgba(200,230,255,0)"]},
+     {y:1,h:0.10,grad:["rgba(230,245,255,0.9)","rgba(200,230,255,0)"]}].forEach(p=>{
+      const g=ctx.createLinearGradient(0,p.y===0?0:size,0,p.y===0?p.h*size:(1-p.h)*size);
+      g.addColorStop(0,p.grad[0]); g.addColorStop(1,p.grad[1]);
+      ctx.fillStyle=g; ctx.fillRect(0,p.y===0?0:(1-p.h)*size,size,p.h*size);
+    });
+    // Clouds
+    ctx.fillStyle="rgba(255,255,255,0.32)";
+    [{x:0.3,y:0.18,w:0.42,h:0.055},{x:0.5,y:0.42,w:0.38,h:0.05},{x:0.18,y:0.62,w:0.32,h:0.05},
+     {x:0.62,y:0.72,w:0.28,h:0.045},{x:0.40,y:0.82,w:0.35,h:0.05}].forEach(cl=>{
+      ctx.beginPath();
+      ctx.ellipse(cl.x*size,cl.y*size,cl.w*size*0.5,cl.h*size*0.5,-0.15,0,Math.PI*2);
+      ctx.fill();
+    });
+
+  } else if (type === "lava") {
+    ctx.fillStyle="#100500"; ctx.fillRect(0,0,size,size);
+    // Lava lakes
+    [{x:0.3,y:0.35,r:0.22},{x:0.68,y:0.28,r:0.18},{x:0.50,y:0.65,r:0.20},{x:0.18,y:0.68,r:0.14}].forEach(l=>{
+      const g=ctx.createRadialGradient(l.x*size,l.y*size,0,l.x*size,l.y*size,l.r*size);
+      g.addColorStop(0,"rgba(255,180,0,0.95)");
+      g.addColorStop(0.3,"rgba(255,80,0,0.8)");
+      g.addColorStop(0.6,"rgba(180,30,0,0.5)");
+      g.addColorStop(1,"rgba(0,0,0,0)");
+      ctx.fillStyle=g; ctx.fillRect(0,0,size,size);
+    });
+    // Crack network
+    const drawCrack=(x,y,angle,len,depth)=>{
+      if(depth>4||len<10)return;
+      const ex=x+Math.cos(angle)*len, ey=y+Math.sin(angle)*len;
+      ctx.strokeStyle=`rgba(255,${100+depth*20},0,${0.7-depth*0.1})`;
+      ctx.lineWidth=Math.max(1,4-depth);
+      ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(ex,ey); ctx.stroke();
+      // Glow on crack
+      const glw=ctx.createLinearGradient(x,y,ex,ey);
+      glw.addColorStop(0,"rgba(255,150,0,0.4)");
+      glw.addColorStop(1,"rgba(255,80,0,0)");
+      ctx.strokeStyle=glw; ctx.lineWidth=(4-depth)*2;
+      ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(ex,ey); ctx.stroke();
+      drawCrack(ex,ey,angle+(Math.random()-0.5)*0.8,len*0.7,depth+1);
+      if(Math.random()>0.4) drawCrack(ex,ey,angle+(Math.random()-0.5)*1.2,len*0.5,depth+2);
+    };
+    for(let i=0;i<18;i++) drawCrack(Math.random()*size,Math.random()*size,Math.random()*Math.PI*2,size*0.18,0);
+
+  } else if (type === "ice") {
+    const base=ctx.createRadialGradient(r*0.4,r*0.35,0,r,r,r);
+    base.addColorStop(0,"#F0F8FF"); base.addColorStop(0.4,"#B0D8F8");
+    base.addColorStop(0.75,"#80B0E0"); base.addColorStop(1,"#4080C0");
+    ctx.fillStyle=base; ctx.fillRect(0,0,size,size);
+    // Ice surface texture
+    for(let i=0;i<40;i++){
+      const ix=Math.random()*size,iy=Math.random()*size,il=Math.random()*size*0.25+size*0.05;
+      const ia=Math.random()*Math.PI*2;
+      ctx.strokeStyle=`rgba(150,210,255,${0.3+Math.random()*0.35})`;
+      ctx.lineWidth=0.8+Math.random()*1.5;
+      ctx.beginPath(); ctx.moveTo(ix,iy);
+      ctx.lineTo(ix+Math.cos(ia)*il, iy+Math.sin(ia)*il); ctx.stroke();
+    }
+    // Subsurface glow patches
+    [{x:0.35,y:0.4,r:0.22,col:"rgba(100,180,255,0.18)"},{x:0.65,y:0.6,r:0.18,col:"rgba(80,160,240,0.15)"},
+     {x:0.5,y:0.25,r:0.15,col:"rgba(120,200,255,0.12)"}].forEach(p=>{
+      const g=ctx.createRadialGradient(p.x*size,p.y*size,0,p.x*size,p.y*size,p.r*size);
+      g.addColorStop(0,p.col); g.addColorStop(1,"rgba(0,0,0,0)");
+      ctx.fillStyle=g; ctx.fillRect(0,0,size,size);
+    });
+    // Polar highlights
+    const pg=ctx.createRadialGradient(r,0,0,r,0,r*0.5);
+    pg.addColorStop(0,"rgba(255,255,255,0.95)"); pg.addColorStop(1,"rgba(255,255,255,0)");
+    ctx.fillStyle=pg; ctx.fillRect(0,0,size,size);
+
+  } else if (type === "purple_gas") {
+    const base=ctx.createLinearGradient(0,0,0,size);
+    base.addColorStop(0,"#6622CC"); base.addColorStop(0.3,"#4410AA");
+    base.addColorStop(0.6,"#551599"); base.addColorStop(1,"#330077");
+    ctx.fillStyle=base; ctx.fillRect(0,0,size,size);
+    [{y:0.08,h:0.06,col:"rgba(180,80,255,0.45)"},{y:0.20,h:0.05,col:"rgba(80,0,160,0.5)"},
+     {y:0.32,h:0.07,col:"rgba(200,100,255,0.4)"},{y:0.47,h:0.05,col:"rgba(60,0,140,0.5)"},
+     {y:0.58,h:0.07,col:"rgba(170,70,240,0.42)"},{y:0.72,h:0.05,col:"rgba(80,10,160,0.45)"},
+     {y:0.83,h:0.06,col:"rgba(190,90,255,0.38)"}].forEach(b=>{
+      ctx.fillStyle=b.col;
+      ctx.beginPath(); ctx.moveTo(0,b.y*size);
+      for(let x=0;x<=size;x+=6){
+        const w=Math.sin(x*0.015+b.y*8)*5+Math.cos(x*0.04)*3;
+        ctx.lineTo(x,b.y*size+w);
+      }
+      for(let x=size;x>=0;x-=6){
+        const w=Math.sin(x*0.015+b.y*8)*5+Math.cos(x*0.04)*3;
+        ctx.lineTo(x,(b.y+b.h)*size+w);
+      }
+      ctx.closePath(); ctx.fill();
+    });
+    // Storm oval
+    const sx=size*0.38,sy=size*0.55;
+    const sg=ctx.createRadialGradient(sx,sy,0,sx,sy,size*0.10);
+    sg.addColorStop(0,"rgba(220,150,255,0.9)"); sg.addColorStop(0.5,"rgba(160,80,220,0.6)"); sg.addColorStop(1,"rgba(0,0,0,0)");
+    ctx.save(); ctx.translate(sx,sy); ctx.scale(1.5,1);
+    ctx.beginPath(); ctx.arc(0,0,size*0.09,0,Math.PI*2);
+    ctx.fillStyle=sg; ctx.fill(); ctx.restore();
+
+  } else { // rocky/default
+    const hues=[15,200,280,140,30];
+    const hue=hues[Math.floor(Math.random()*hues.length)];
+    const base=ctx.createRadialGradient(r*0.4,r*0.35,0,r,r,r);
+    base.addColorStop(0,`hsl(${hue},45%,55%)`);
+    base.addColorStop(0.5,`hsl(${hue},40%,35%)`);
+    base.addColorStop(1,`hsl(${hue},35%,15%)`);
+    ctx.fillStyle=base; ctx.fillRect(0,0,size,size);
+    for(let i=0;i<20;i++){
+      const cx2=Math.random()*size, cy2=Math.random()*size;
+      const cr2=Math.random()*size*0.12+size*0.03;
+      const cg=ctx.createRadialGradient(cx2,cy2,0,cx2,cy2,cr2);
+      cg.addColorStop(0,"rgba(0,0,0,0.6)"); cg.addColorStop(0.6,"rgba(0,0,0,0.2)"); cg.addColorStop(1,"rgba(255,255,255,0.08)");
+      ctx.beginPath(); ctx.arc(cx2,cy2,cr2,0,Math.PI*2); ctx.fillStyle=cg; ctx.fill();
+    }
+  }
+
+  // Sphere lighting overlay (universal)
+  const shade=ctx.createRadialGradient(r*0.38,r*0.28,0,r,r,r*1.05);
+  shade.addColorStop(0,"rgba(255,255,255,0.15)");
+  shade.addColorStop(0.45,"rgba(0,0,0,0)");
+  shade.addColorStop(0.82,"rgba(0,0,0,0.38)");
+  shade.addColorStop(1,"rgba(0,0,0,0.80)");
+  ctx.fillStyle=shade; ctx.fillRect(0,0,size,size);
+  // Specular
+  const spec=ctx.createRadialGradient(r*0.32,r*0.25,0,r*0.32,r*0.25,r*0.22);
+  spec.addColorStop(0,"rgba(255,255,255,0.32)"); spec.addColorStop(1,"rgba(255,255,255,0)");
+  ctx.fillStyle=spec; ctx.fillRect(0,0,size,size);
+
+  return new THREE.CanvasTexture(c);
+}
+
+function makeRingTexture() {
+  const c=document.createElement("canvas"); c.width=512; c.height=64;
+  const ctx=c.getContext("2d");
+  const g=ctx.createLinearGradient(0,0,512,0);
+  g.addColorStop(0,"rgba(0,0,0,0)");
+  g.addColorStop(0.04,"rgba(210,190,145,0.25)");
+  g.addColorStop(0.10,"rgba(220,200,155,0.75)");
+  g.addColorStop(0.17,"rgba(185,165,120,0.45)");
+  g.addColorStop(0.25,"rgba(215,195,150,0.88)");
+  g.addColorStop(0.32,"rgba(170,150,108,0.35)");
+  g.addColorStop(0.40,"rgba(200,180,138,0.70)");
+  g.addColorStop(0.48,"rgba(160,140,100,0.25)");
+  g.addColorStop(0.56,"rgba(195,175,132,0.60)");
+  g.addColorStop(0.64,"rgba(155,135,95,0.30)");
+  g.addColorStop(0.72,"rgba(185,165,122,0.50)");
+  g.addColorStop(0.80,"rgba(145,125,85,0.22)");
+  g.addColorStop(0.90,"rgba(170,150,108,0.35)");
+  g.addColorStop(0.97,"rgba(130,110,75,0.15)");
+  g.addColorStop(1,"rgba(0,0,0,0)");
+  ctx.fillStyle=g; ctx.fillRect(0,0,512,64);
+  return new THREE.CanvasTexture(c);
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// NEBULA BACKGROUND — built entirely in Three.js, no image
+// ═══════════════════════════════════════════════════════════════════
+function buildSpaceBackground(scene) {
+  // Pure black backdrop sphere — all stars are now dynamic THREE.Points
+  const skyGeo = new THREE.SphereGeometry(450, 16, 16);
+  const skyMat = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.BackSide });
+  scene.add(new THREE.Mesh(skyGeo, skyMat));
+}
+
+function xorshift(seed) {
+  let s = seed;
+  return () => { s^=s<<13; s^=s>>17; s^=s<<5; return (s>>>0)/4294967296; };
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// AUDIO
+// ═══════════════════════════════════════════════════════════════════
+class AudioEngine {
+  constructor() { this.ctx=null;this.mg=null;this.playing=false;this.enabled=true;this.bc=0;this.nb=0;this.bpm=120;this.la=25;this.sa=0.12;this.timer=null; }
+  get bt() { return 60/this.bpm; }
+  init() { if(this.ctx)return;this.ctx=new(window.AudioContext||window.webkitAudioContext)();this.mg=this.ctx.createGain();this.mg.gain.value=0.42;this.mg.connect(this.ctx.destination); }
+  noise(d) { const b=this.ctx.createBuffer(1,this.ctx.sampleRate*d,this.ctx.sampleRate);const a=b.getChannelData(0);for(let i=0;i<a.length;i++)a[i]=Math.random()*2-1;return b; }
+  kick(t) { const o=this.ctx.createOscillator(),g=this.ctx.createGain();o.connect(g);g.connect(this.mg);o.frequency.setValueAtTime(160,t);o.frequency.exponentialRampToValueAtTime(0.001,t+0.45);g.gain.setValueAtTime(1.2,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.45);o.start(t);o.stop(t+0.5); }
+  snare(t) { const s=this.ctx.createBufferSource();s.buffer=this.noise(0.18);const f=this.ctx.createBiquadFilter();f.type="bandpass";f.frequency.value=2800;const g=this.ctx.createGain();g.gain.setValueAtTime(0.35,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.18);s.connect(f);f.connect(g);g.connect(this.mg);s.start(t);s.stop(t+0.2); }
+  hihat(t,op=false) { const d=op?0.22:0.04;const s=this.ctx.createBufferSource();s.buffer=this.noise(d);const f=this.ctx.createBiquadFilter();f.type="highpass";f.frequency.value=9000;const g=this.ctx.createGain();g.gain.setValueAtTime(0.11,t);g.gain.exponentialRampToValueAtTime(0.001,t+d);s.connect(f);f.connect(g);g.connect(this.mg);s.start(t);s.stop(t+d); }
+  bass(t,fr,d) { const o=this.ctx.createOscillator();const f=this.ctx.createBiquadFilter();f.type="lowpass";f.frequency.value=300;const g=this.ctx.createGain();o.type="sawtooth";o.frequency.value=fr;g.gain.setValueAtTime(0.52,t);g.gain.setValueAtTime(0.52,t+d*0.7);g.gain.exponentialRampToValueAtTime(0.001,t+d);o.connect(f);f.connect(g);g.connect(this.mg);o.start(t);o.stop(t+d); }
+  lead(t,fr,d) { const o1=this.ctx.createOscillator(),o2=this.ctx.createOscillator();o1.type="square";o2.type="square";o1.frequency.value=fr;o2.frequency.value=fr*1.006;const g=this.ctx.createGain();g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(0.09,t+0.012);g.gain.setValueAtTime(0.09,t+d*0.55);g.gain.exponentialRampToValueAtTime(0.001,t+d);o1.connect(g);o2.connect(g);g.connect(this.mg);o1.start(t);o1.stop(t+d);o2.start(t);o2.stop(t+d); }
+  pad(t,fr,d) { const o=this.ctx.createOscillator();o.type="sine";o.frequency.value=fr;const g=this.ctx.createGain();g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(0.065,t+0.1);g.gain.setValueAtTime(0.065,t+d-0.1);g.gain.linearRampToValueAtTime(0,t+d);o.connect(g);g.connect(this.mg);o.start(t);o.stop(t+d); }
+  scheduleBeat(beat,time) {
+    const b16=beat%16,b4=beat%4;
+    if(b16%4===0)this.kick(time);if(b16===4||b16===12)this.snare(time);this.hihat(time,b16%4===2);
+    const bl=[55,55,65.41,55,49,49,61.74,55];if(b16%2===0)this.bass(time,bl[Math.floor(b16/2)],this.bt*1.85);
+    const sc=[220,246.94,261.63,293.66,329.63,349.23,392,440,493.88,523.25],ar=[0,2,4,7,5,4,2,0,3,5,7,9,7,5,3,1];
+    this.lead(time,sc[ar[b16]%sc.length],this.bt*0.42);
+    if(b4===0){const ch=[[130.81,164.81,196],[146.83,174.61,220],[123.47,155.56,196],[130.81,164.81,207.65]];ch[Math.floor(b16/4)%4].forEach(f=>this.pad(time,f,this.bt*4));}
+  }
+  schedule() { while(this.nb<this.ctx.currentTime+this.sa){this.scheduleBeat(this.bc,this.nb);this.bc++;this.nb+=this.bt;} }
+  start() { if(!this.enabled)return;this.init();if(this.playing)return;this.playing=true;this.bc=0;this.nb=this.ctx.currentTime+0.05;this.timer=setInterval(()=>this.schedule(),this.la); }
+  stop() { this.playing=false;clearInterval(this.timer); }
+  setTempo(b) { this.bpm=Math.min(b,210); }
+  playCrash() { if(!this.enabled||!this.ctx)return;const s=this.ctx.createBufferSource();s.buffer=this.noise(0.9);const g=this.ctx.createGain();g.gain.setValueAtTime(0.6,this.ctx.currentTime);g.gain.exponentialRampToValueAtTime(0.001,this.ctx.currentTime+0.9);s.connect(g);g.connect(this.mg);s.start();s.stop(this.ctx.currentTime+0.9); }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// GAME
+// ═══════════════════════════════════════════════════════════════════
+class SnapRacerGame {
+  constructor() {
+    this.canvas = document.getElementById("game-canvas");
+    this.audio = new AudioEngine();
+    this.isPlaying = false;
+    this.score = 0; this.distance = 0;
+    this.baseSpeed = 0.05; this.speed = 0.05; this.maxSpeedRecorded = 0;
+    this.currentLane = 1; this.playerX = 0; this.targetX = 0;
+    this.obstacles = []; this.road = []; this.barriers = []; this.markers = [];
+    this.planetGroups = [];
+    this.movingStars = null;
+    this.shootingStars = [];
+    this.laneWidth = 2.67;
+    this.ringTexture = makeRingTexture();
+    this.init();
+  }
+
+  init() {
+    this.scene = new THREE.Scene();
+
+    this.renderer = new THREE.WebGLRenderer({ canvas: this.canvas, antialias: true });
+    this.renderer.setSize(innerWidth, innerHeight);
+    this.renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    this.renderer.setClearColor(0x000000);
+
+    // Original camera angle
+    this.camera = new THREE.PerspectiveCamera(75, innerWidth/innerHeight, 0.1, 600);
+    this.camera.position.set(0, 2.5, 5);
+    this.camera.lookAt(0, 0, -10);
+
+    this.scene.add(new THREE.AmbientLight(0x334466, 0.8));
+    const dir = new THREE.DirectionalLight(0xffeedd, 1.0);
+    dir.position.set(15, 25, 10); this.scene.add(dir);
+    const pL = new THREE.PointLight(0xFF006E, 3, 20); pL.position.set(-4,1.5,0); this.scene.add(pL);
+    const bL = new THREE.PointLight(0x00F5FF, 3, 20); bL.position.set(4,1.5,0); this.scene.add(bL);
+
+    // Space background (skybox sphere)
+    buildSpaceBackground(this.scene);
+
+    // ── NEBULA at vanishing point — pink & teal glow at end of road ──
+    this.buildNebula();
+
+    // Moving 3D star field (scrolls with the world)
+    this.buildMovingStars();
+
+    // Planets
+    this.buildPlanets();
+
+    // Shooting stars
+    this.buildShootingStars();
+
+    // Road + player
+    this.buildRoad();
+    this.buildPlayer();
+    this.setupControls();
+    window.addEventListener("resize", () => this.onResize());
+    this.animate();
+  }
+
+  buildNebula() {
+    this.nebulaGroup = new THREE.Group();
+
+    // Photorealistic nebula — Crab Nebula / supernova remnant style
+    // Strategy: avoid ALL smooth radial gradients (they look fake).
+    // Instead: turbulent noise via thousands of tiny overlapping ellipses at
+    // random angles + bright curved filaments + fine wispy strokes = organic texture.
+    const SIZE = 1024;
+    const offscreen = document.createElement("canvas");
+    offscreen.width = offscreen.height = SIZE;
+    const ctx = offscreen.getContext("2d");
+    const cx = SIZE/2, cy = SIZE/2;
+
+    // Fast seeded RNG
+    let _s = 0xF00DFACE;
+    const rng  = () => { _s^=_s<<13;_s^=_s>>17;_s^=_s<<5; return(_s>>>0)/4294967296; };
+    const ri   = (a,b) => a + Math.floor(rng()*(b-a));
+    const rf   = (a,b) => a + rng()*(b-a);
+
+    // ── BLACK BASE ────────────────────────────────────────────────────
+    ctx.fillStyle = "#000000";
+    ctx.fillRect(0, 0, SIZE, SIZE);
+
+    // ── TURBULENT GAS VOLUME ─────────────────────────────────────────
+    // Paint 3 passes of tiny rotated ellipses at random positions.
+    // NO radial gradients — each ellipse is a filled arc with alpha.
+    // Layering hundreds of these creates a genuinely cloudy, turbulent look.
+
+    // Pass A — outermost diffuse gas (blue-purple, large soft ellipses)
+    for (let i = 0; i < 160; i++) {
+      const ang  = rf(0, Math.PI*2);
+      const dist = rf(0.18, 0.44) * SIZE;
+      const ex   = cx + Math.cos(ang)*dist*rf(0.5,1.1);
+      const ey   = cy + Math.sin(ang)*dist*rf(0.45,0.95);
+      const rw   = rf(0.04,0.14)*SIZE, rh = rw*rf(0.3,0.8);
+      const rot  = rf(0, Math.PI);
+      const a    = rf(0.03,0.08);
+      ctx.save();
+      ctx.translate(ex,ey); ctx.rotate(rot); ctx.scale(1, rh/rw);
+      ctx.beginPath(); ctx.arc(0,0,rw,0,Math.PI*2);
+      ctx.fillStyle=`rgba(${ri(30,90)},${ri(5,25)},${ri(100,180)},${a.toFixed(3)})`;
+      ctx.fill(); ctx.restore();
+    }
+
+    // Pass B — mid-layer brighter purple-violet cloud bodies
+    for (let i = 0; i < 200; i++) {
+      const ang  = rf(0, Math.PI*2);
+      const dist = rf(0,0.32)*SIZE;
+      const ex   = cx + Math.cos(ang)*dist*rf(0.6,1.0);
+      const ey   = cy + Math.sin(ang)*dist*rf(0.55,0.95);
+      const rw   = rf(0.02,0.09)*SIZE, rh = rw*rf(0.25,0.75);
+      const rot  = rf(0,Math.PI);
+      const a    = rf(0.05,0.12);
+      ctx.save();
+      ctx.translate(ex,ey); ctx.rotate(rot); ctx.scale(1,rh/rw);
+      ctx.beginPath(); ctx.arc(0,0,rw,0,Math.PI*2);
+      ctx.fillStyle=`rgba(${ri(80,170)},${ri(15,50)},${ri(140,230)},${a.toFixed(3)})`;
+      ctx.fill(); ctx.restore();
+    }
+
+    // Pass C — inner hot zone, pinkish-purple, dense small ellipses near center
+    for (let i = 0; i < 180; i++) {
+      const ang  = rf(0,Math.PI*2);
+      const dist = rf(0,0.20)*SIZE;
+      const ex   = cx + Math.cos(ang)*dist;
+      const ey   = cy + Math.sin(ang)*dist*rf(0.6,0.9);
+      const rw   = rf(0.01,0.06)*SIZE, rh = rw*rf(0.2,0.7);
+      const rot  = rf(0,Math.PI);
+      const a    = rf(0.06,0.15);
+      ctx.save();
+      ctx.translate(ex,ey); ctx.rotate(rot); ctx.scale(1,rh/rw);
+      ctx.beginPath(); ctx.arc(0,0,rw,0,Math.PI*2);
+      ctx.fillStyle=`rgba(${ri(160,245)},${ri(30,80)},${ri(130,210)},${a.toFixed(3)})`;
+      ctx.fill(); ctx.restore();
+    }
+
+    // ── GLOWING FILAMENT VEINS ───────────────────────────────────────
+    // Triple-pass each filament: wide diffuse glow → medium → sharp core
+    ctx.lineCap="round"; ctx.lineJoin="round";
+    for (let i = 0; i < 28; i++) {
+      const a1  = rf(0,Math.PI*2);
+      const r1  = rf(0.02,0.10)*SIZE;
+      const a2  = a1 + rf(0.3,1.1)*(rng()<0.5?1:-1);
+      const r2  = rf(0.10,0.30)*SIZE;
+      const sx  = cx+Math.cos(a1)*r1, sy = cy+Math.sin(a1)*r1;
+      const ex  = cx+Math.cos(a2)*r2, ey = cy+Math.sin(a2)*r2;
+      // Two random control points for more organic curves
+      const cp1x = cx+rf(-0.25,0.25)*SIZE, cp1y = cy+rf(-0.25,0.25)*SIZE;
+      const bright = rf(0.5,1.0);
+      const fr=ri(180,255), fg=ri(25,80), fb=ri(90,170);
+      const w = rf(1.0,5.0);
+      ctx.beginPath(); ctx.moveTo(sx,sy); ctx.quadraticCurveTo(cp1x,cp1y,ex,ey);
+      ctx.strokeStyle=`rgba(${fr},${fg},${fb},0.12)`; ctx.lineWidth=w*8; ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(sx,sy); ctx.quadraticCurveTo(cp1x,cp1y,ex,ey);
+      ctx.strokeStyle=`rgba(${fr},${fg},${fb},0.28)`; ctx.lineWidth=w*2.5; ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(sx,sy); ctx.quadraticCurveTo(cp1x,cp1y,ex,ey);
+      ctx.strokeStyle=`rgba(${fr},${fg},${fb},${(0.55+bright*0.40).toFixed(2)})`; ctx.lineWidth=w*0.6; ctx.stroke();
+    }
+
+    // ── FINE WISPY TEXTURE ───────────────────────────────────────────
+    // 1200 tiny short strokes at all angles — essential for breaking up
+    // the smooth look and making it feel like photographed gas
+    for (let i = 0; i < 1200; i++) {
+      const ang  = rf(0,Math.PI*2);
+      const dist = Math.pow(rng(),0.55)*SIZE*0.47;
+      const wx   = cx+Math.cos(ang)*dist;
+      const wy   = cy+Math.sin(ang)*dist*0.86;
+      const wl   = rf(3,28);
+      const wa   = rf(0,Math.PI*2);
+      const fo   = 1-dist/(SIZE*0.47);
+      let wr,wg,wb;
+      if      (dist<SIZE*0.07)  {wr=ri(230,255);wg=ri(150,210);wb=ri(200,250);} // white-hot core
+      else if (dist<SIZE*0.16)  {wr=ri(200,255);wg=ri(40,90); wb=ri(130,200);} // hot pink
+      else if (dist<SIZE*0.28)  {wr=ri(110,200);wg=ri(25,65); wb=ri(160,230);} // magenta-purple
+      else                       {wr=ri(50,110); wg=ri(15,45); wb=ri(150,220);} // blue-purple
+      const wa2=(rf(0.04,0.16)*fo);
+      ctx.beginPath();
+      ctx.moveTo(wx,wy);
+      ctx.lineTo(wx+Math.cos(wa)*wl, wy+Math.sin(wa)*wl);
+      ctx.strokeStyle=`rgba(${wr},${wg},${wb},${wa2.toFixed(3)})`;
+      ctx.lineWidth=rf(0.3,1.2); ctx.stroke();
+    }
+
+    // ── DARK INTERIOR CAVITY ─────────────────────────────────────────
+    // Real nebulae have dark regions where the gas is thinner
+    for (let i = 0; i < 5; i++) {
+      const dx = cx+rf(-0.08,0.12)*SIZE, dy = cy+rf(-0.10,0.08)*SIZE;
+      const dr = rf(0.05,0.13)*SIZE;
+      const dg = ctx.createRadialGradient(dx,dy,0,dx,dy,dr);
+      dg.addColorStop(0,`rgba(0,0,0,${rf(0.35,0.60).toFixed(2)})`);
+      dg.addColorStop(1,"rgba(0,0,0,0)");
+      ctx.fillStyle=dg; ctx.fillRect(0,0,SIZE,SIZE);
+    }
+
+    // ── PULSAR STAR ──────────────────────────────────────────────────
+    // Bright central point source with diffraction spikes
+    const px=cx+SIZE*0.03, py=cy+SIZE*0.04;
+    const pg=ctx.createRadialGradient(px,py,0,px,py,SIZE*0.065);
+    pg.addColorStop(0,"rgba(255,252,255,1.0)");
+    pg.addColorStop(0.12,"rgba(255,210,245,0.95)");
+    pg.addColorStop(0.40,"rgba(200,80,200,0.55)");
+    pg.addColorStop(1,"rgba(0,0,0,0)");
+    ctx.fillStyle=pg; ctx.fillRect(0,0,SIZE,SIZE);
+    // Four diffraction spikes
+    [[px-SIZE*0.12,py,px+SIZE*0.12,py],[px,py-SIZE*0.12,px,py+SIZE*0.12],
+     [px-SIZE*0.08,py-SIZE*0.08,px+SIZE*0.08,py+SIZE*0.08],
+     [px+SIZE*0.08,py-SIZE*0.08,px-SIZE*0.08,py+SIZE*0.08]
+    ].forEach(([x1,y1,x2,y2],ii)=>{
+      ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2);
+      ctx.strokeStyle=ii<2?"rgba(255,230,255,0.60)":"rgba(255,200,255,0.30)";
+      ctx.lineWidth=ii<2?0.8:0.5; ctx.stroke();
+    });
+
+    // ── EMBEDDED STARS ───────────────────────────────────────────────
+    for (let i = 0; i < 160; i++) {
+      const sa=rf(0,Math.PI*2), sd=rf(0,SIZE*0.50);
+      const ssx=cx+Math.cos(sa)*sd, ssy=cy+Math.sin(sa)*sd;
+      ctx.beginPath(); ctx.arc(ssx,ssy,rf(0.15,0.9),0,Math.PI*2);
+      const ss=sd<SIZE*0.30?rf(0.35,0.80):rf(0.55,0.95);
+      ctx.fillStyle=`rgba(255,255,255,${ss.toFixed(2)})`; ctx.fill();
+    }
+
+    // ── EDGE FADE ────────────────────────────────────────────────────
+    const mG=ctx.createRadialGradient(cx,cy,SIZE*0.25,cx,cy,SIZE*0.50);
+    mG.addColorStop(0,"rgba(0,0,0,0)");
+    mG.addColorStop(1,"rgba(0,0,0,1)");
+    ctx.fillStyle=mG; ctx.fillRect(0,0,SIZE,SIZE);
+
+    const tex=new THREE.CanvasTexture(offscreen);
+    const sprite=new THREE.Sprite(new THREE.SpriteMaterial({
+      map:tex, transparent:true,
+      blending:THREE.AdditiveBlending, depthWrite:false, opacity:0.92,
+    }));
+    sprite.scale.set(180,180,1);
+    sprite.position.set(0,18,-380);
+    this.nebulaGroup.add(sprite);
+    this.scene.add(this.nebulaGroup);
+  }
+  buildMovingStars() {
+    // THREE layers of stars with different parallax speeds:
+    // NEAR  — scroll fast toward camera (strong parallax)
+    // MID   — scroll slowly (gentle parallax)
+    // FAR   — barely move in Z, just twinkle (shimmer in place)
+
+    const makeLayer = (count, xSpread, yMin, yRange, zSpread, blueChance, sizeMult) => {
+      const geo = new THREE.BufferGeometry();
+      const pos   = new Float32Array(count * 3);
+      const col   = new Float32Array(count * 3);
+      const sizes = new Float32Array(count);
+      const phase = new Float32Array(count); // per-star twinkle phase
+      for (let i = 0; i < count; i++) {
+        pos[i*3]   = (Math.random() - 0.5) * xSpread;
+        pos[i*3+1] = yMin + Math.random() * yRange;
+        pos[i*3+2] = -Math.random() * zSpread - 10;
+        const blue = Math.random() < blueChance;
+        const warm = Math.random() < 0.08;
+        col[i*3]   = warm ? 1.0 : (blue ? 0.72 : 1.0);
+        col[i*3+1] = warm ? 0.85: (blue ? 0.86 : 1.0);
+        col[i*3+2] = warm ? 0.65: 1.0;
+        sizes[i]   = (Math.random() * 1.8 + 0.3) * sizeMult;
+        phase[i]   = Math.random() * Math.PI * 2;
+      }
+      geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+      geo.setAttribute("color",    new THREE.BufferAttribute(col, 3));
+      geo.setAttribute("size",     new THREE.BufferAttribute(sizes, 1));
+      geo.setAttribute("phase",    new THREE.BufferAttribute(phase, 1));
+      const mat = new THREE.PointsMaterial({
+        size: 1.6 * sizeMult, vertexColors: true,
+        transparent: true, opacity: 0.90, sizeAttenuation: false,
+      });
+      return new THREE.Points(geo, mat);
+    };
+
+    // Near: 600 stars, scroll fast, spread across full depth
+    this.starsNear = makeLayer(600,  400, 40, 100, 400, 0.20, 1.1);
+    // Mid: 800 stars, scroll slowly, wider spread
+    this.starsMid  = makeLayer(800,  500, 40, 110, 600, 0.25, 0.85);
+    // Far: 2000 stars, barely scroll, very deep — twinkle in place
+    this.starsFar  = makeLayer(2000, 600, 38, 120, 800, 0.30, 0.65);
+
+    // Store original base opacity per star for twinkle (we'll modulate per-frame via opacity)
+    // For far stars we'll twinkle the whole Points opacity — but since they're split into
+    // groups, we do per-star twinkle by updating the positions array alpha via a separate
+    // colors attribute oscillation trick: modulate color brightness per frame
+    this.scene.add(this.starsNear);
+    this.scene.add(this.starsMid);
+    this.scene.add(this.starsFar);
+  }
+
+  buildShootingStars() {
+    for (let i = 0; i < 12; i++) {
+      const geo = new THREE.BufferGeometry();
+      // Park WAY off screen — dormant lines must never be visible as dots
+      const pts = [new THREE.Vector3(9999,9999,-9999), new THREE.Vector3(9999,9999,-9999)];
+      geo.setFromPoints(pts);
+      const mat = new THREE.LineBasicMaterial({
+        color: 0xffffff, transparent: true, opacity: 0, linewidth: 1
+      });
+      const line = new THREE.Line(geo, mat);
+      line.userData = { active: false, timer: 4 + Math.random() * 6 };
+      this.scene.add(line);
+      this.shootingStars.push(line);
+    }
+  }
+
+  spawnShootingStar(star) {
+    // Spawn high in sky only — never near road level or center screen
+    // Pick a side (left or right) to start from
+    const side = Math.random() < 0.5 ? -1 : 1;
+    const startX = side * (80 + Math.random() * 120); // far left or far right
+    const startY = 55 + Math.random() * 60;           // high up only
+    const startZ = -80 - Math.random() * 200;
+    const len = 30 + Math.random() * 60;
+    // Streak diagonally inward (toward center) and slightly downward
+    const dx = -side * (len * 0.7 + Math.random() * len * 0.3);
+    const dy = -(len * 0.15 + Math.random() * len * 0.1);
+
+    const pts = [
+      new THREE.Vector3(startX, startY, startZ),
+      new THREE.Vector3(startX + dx, startY + dy, startZ)
+    ];
+    star.geometry.setFromPoints(pts);
+    star.material.opacity = 0.88;
+    star.material.color.setHSL(Math.random() * 0.1 + 0.55, 0.2, 1.0);
+    star.userData.active = true;
+    star.userData.life = 0;
+    star.userData.maxLife = 0.5 + Math.random() * 0.7;
+    star.userData.vz = 0.3 + Math.random() * 0.4;
+  }
+
+  buildPlanets() {
+    const CONFIGS = [
+      // y = r so planet bottom sits at road level
+      // Wider X spacing, more varied Z so they never crowd each other
+      { type:"jupiter",     x:-95,  y:32,  z:-180, r:32, rings:false, rot:0.0018, tilt:0.1  },
+      { type:"saturn",      x: 115, y:28,  z:-280, r:28, rings:true,  rot:0.0012, tilt:0.22 },
+      { type:"neptune",     x:-85,  y:24,  z:-380, r:24, rings:false, rot:0.0016, tilt:0.05 },
+      { type:"earth_like",  x: 90,  y:22,  z:-160, r:22, rings:false, rot:0.0020, tilt:0.15 },
+      { type:"lava",        x:-105, y:20,  z:-320, r:20, rings:false, rot:0.0024, tilt:0.08 },
+      { type:"ice",         x: 100, y:21,  z:-440, r:21, rings:false, rot:0.0019, tilt:0.12 },
+      { type:"purple_gas",  x:-90,  y:30,  z:-520, r:30, rings:true,  rot:0.0014, tilt:0.18 },
+      { type:"jupiter",     x: 120, y:35,  z:-580, r:35, rings:false, rot:0.0015, tilt:0.07 },
+      { type:"rocky",       x:-70,  y:14,  z:-230, r:14, rings:false, rot:0.0028, tilt:0.20 },
+      { type:"saturn",      x: 82,  y:18,  z:-480, r:18, rings:true,  rot:0.0013, tilt:0.25 },
+      { type:"neptune",     x: 98,  y:20,  z:-140, r:20, rings:false, rot:0.0017, tilt:0.06 },
+      { type:"lava",        x:-72,  y:12,  z:-130, r:12, rings:false, rot:0.0030, tilt:0.14 },
+    ];
+
+    CONFIGS.forEach(cfg => {
+      const grp = new THREE.Group();
+      const tex = makePlanetTexture(cfg.type);
+
+      const sphere = new THREE.Mesh(
+        new THREE.SphereGeometry(cfg.r, 72, 72),
+        new THREE.MeshPhongMaterial({
+          map: tex,
+          shininess: cfg.type==="ice" ? 90 : cfg.type==="earth_like" ? 50 : 25,
+          specular: cfg.type==="ice" ? new THREE.Color(0x8899FF)
+                  : cfg.type==="earth_like" ? new THREE.Color(0x224488)
+                  : new THREE.Color(0x111111),
+        })
+      );
+      sphere.rotation.z = cfg.tilt;
+      grp.add(sphere);
+      grp.userData.sphere = sphere;
+      grp.userData.type = cfg.type;
+      grp.userData.rotSpeed = cfg.rot;
+
+      // Atmosphere glow
+      const atmColors = {
+        jupiter:"#E8B060",saturn:"#D4C888",neptune:"#3355FF",
+        earth_like:"#66BBFF",lava:"#FF5500",ice:"#99DDFF",
+        purple_gas:"#AA55FF",rocky:"#AA8866"
+      };
+      grp.add(new THREE.Mesh(
+        new THREE.SphereGeometry(cfg.r * 1.06, 32, 32),
+        new THREE.MeshBasicMaterial({
+          color: atmColors[cfg.type] || "#888888",
+          transparent: true, opacity: 0.08, side: THREE.BackSide
+        })
+      ));
+      // Outer glow halo
+      grp.add(new THREE.Mesh(
+        new THREE.SphereGeometry(cfg.r * 1.22, 24, 24),
+        new THREE.MeshBasicMaterial({
+          color: atmColors[cfg.type] || "#888888",
+          transparent: true, opacity: 0.04, side: THREE.BackSide
+        })
+      ));
+
+      // Saturn rings
+      if (cfg.rings) {
+        const ringMesh = new THREE.Mesh(
+          new THREE.RingGeometry(cfg.r * 1.45, cfg.r * 2.8, 160),
+          new THREE.MeshBasicMaterial({
+            map: this.ringTexture,
+            side: THREE.DoubleSide,
+            transparent: true,
+            opacity: 0.90,
+          })
+        );
+        ringMesh.rotation.x = Math.PI / 2.15;
+        ringMesh.rotation.z = cfg.tilt * 0.5;
+        grp.add(ringMesh);
+
+        // Inner dark gap
+        grp.add(new THREE.Mesh(
+          new THREE.RingGeometry(cfg.r * 1.38, cfg.r * 1.45, 80),
+          new THREE.MeshBasicMaterial({ color:0x000000, transparent:true, opacity:0.85, side:THREE.DoubleSide })
+        ));
+      }
+
+      grp.position.set(cfg.x, cfg.y, cfg.z);
+      grp.userData.origX = cfg.x;
+      grp.userData.origY = cfg.y;
+      grp.userData.origZ = cfg.z;
+
+      this.scene.add(grp);
+      this.planetGroups.push(grp);
+    });
+  }
+
+  buildRoad() {
+    for (let i = 0; i < 30; i++) {
+      const seg = new THREE.Mesh(new THREE.PlaneGeometry(8,10),
+        new THREE.MeshPhongMaterial({color:0x1a1a1a, side:THREE.DoubleSide}));
+      seg.rotation.x=-Math.PI/2; seg.position.z=-i*10;
+      this.scene.add(seg); this.road.push(seg);
+
+      const lb=new THREE.Mesh(new THREE.BoxGeometry(0.2,0.8,10),
+        new THREE.MeshPhongMaterial({color:0xFF006E,emissive:0xFF006E,emissiveIntensity:0.45}));
+      lb.position.set(-4.1,0.4,-i*10); this.scene.add(lb); this.barriers.push(lb);
+
+      const rb=new THREE.Mesh(new THREE.BoxGeometry(0.2,0.8,10),
+        new THREE.MeshPhongMaterial({color:0x00F5FF,emissive:0x00F5FF,emissiveIntensity:0.45}));
+      rb.position.set(4.1,0.4,-i*10); this.scene.add(rb); this.barriers.push(rb);
+    }
+    for(let i=0;i<60;i++){
+      for(let lane=1;lane<3;lane++){
+        const m=new THREE.Mesh(new THREE.BoxGeometry(0.1,0.01,1.5),
+          new THREE.MeshBasicMaterial({color:0xFFFC00}));
+        m.position.set(-4+lane*this.laneWidth,0.02,-i*5);
+        this.scene.add(m); this.markers.push(m);
+      }
+    }
+  }
+
+  buildPlayer() {
+    const g=new THREE.Group();
+    g.add(new THREE.Mesh(new THREE.BoxGeometry(0.8,0.4,1.2),
+      new THREE.MeshPhongMaterial({color:0xFF006E,emissive:0xFF006E,emissiveIntensity:0.3,shininess:100})));
+    const cock=new THREE.Mesh(new THREE.SphereGeometry(0.35,16,16),
+      new THREE.MeshPhongMaterial({color:0x00F5FF,emissive:0x00F5FF,emissiveIntensity:0.5,transparent:true,opacity:0.8}));
+    cock.position.y=0.25; cock.scale.set(1,0.7,1); g.add(cock);
+    const eng=new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.3,0.5,8),
+      new THREE.MeshPhongMaterial({color:0x8338EC,emissive:0x8338EC,emissiveIntensity:1}));
+    eng.position.set(0,-0.2,-0.7); eng.rotation.x=Math.PI/2; g.add(eng);
+    g.position.set(0,0.4,0);
+    this.player=g; this.scene.add(g);
+  }
+
+  spawnObstacle() {
+    const close=this.obstacles.some(o=>o.mesh.position.z>-50-18&&o.mesh.position.z<-50+5);
+    if(close)return;
+    const rate=0.007+(this.speed-this.baseSpeed)*0.01;
+    if(Math.random()<rate){
+      const lane=Math.floor(Math.random()*3);
+      const xPos=-4+lane*this.laneWidth+this.laneWidth/2;
+      const cols=[0xFF006E,0x8338EC,0x00F5FF,0x3FFF00];
+      const col=cols[~~(Math.random()*cols.length)];
+      const obs=new THREE.Mesh(new THREE.BoxGeometry(1.2,1.2,1.2),
+        new THREE.MeshPhongMaterial({color:col,emissive:col,emissiveIntensity:0.5,shininess:100}));
+      obs.position.set(xPos,0.6,-50);
+      this.scene.add(obs); this.obstacles.push({mesh:obs});
+    }
+  }
+
+  setupControls() {
+    document.addEventListener("keydown",e=>{
+      if(!this.isPlaying)return;
+      if(e.key==="ArrowLeft"||e.key==="a"||e.key==="A")this.changeLane(-1);
+      if(e.key==="ArrowRight"||e.key==="d"||e.key==="D")this.changeLane(1);
+    });
+    document.getElementById("lb").addEventListener("click",()=>{if(this.isPlaying)this.changeLane(-1);});
+    document.getElementById("lb").addEventListener("touchstart",e=>{e.preventDefault();if(this.isPlaying)this.changeLane(-1);});
+    document.getElementById("rb").addEventListener("click",()=>{if(this.isPlaying)this.changeLane(1);});
+    document.getElementById("rb").addEventListener("touchstart",e=>{e.preventDefault();if(this.isPlaying)this.changeLane(1);});
+  }
+
+  changeLane(d) {
+    const nl=Math.max(0,Math.min(2,this.currentLane+d));
+    if(nl!==this.currentLane){this.currentLane=nl;this.targetX=-4+nl*this.laneWidth+this.laneWidth/2;}
+  }
+
+  start() {
+    this.isPlaying=true;this.score=0;this.distance=0;
+    this.speed=this.baseSpeed;this.maxSpeedRecorded=0;
+    this.currentLane=1;this.targetX=-4+this.laneWidth+this.laneWidth/2;this.playerX=this.targetX;
+    this.obstacles.forEach(o=>this.scene.remove(o.mesh));this.obstacles=[];
+    this.planetGroups.forEach(p=>{
+      p.position.set(p.userData.origX,p.userData.origY,p.userData.origZ);
+    });
+    this.nebulaGroup.position.z = 0;
+    this.updHUD();this.audio.start();
+  }
+
+  stop() {
+    this.isPlaying=false;this.audio.stop();this.audio.playCrash();
+    const sv=JSON.parse(localStorage.getItem("srData")||"{}");
+    const runs=(sv.runs||0)+1,hi=Math.max(sv.hi||0,~~this.score);
+    localStorage.setItem("srData",JSON.stringify({hi,runs}));
+    document.getElementById("fs").textContent=~~this.score;
+    document.getElementById("hs").textContent=hi;
+    document.getElementById("dist").textContent=~~this.distance+"m";
+    document.getElementById("mspd").textContent=~~(this.maxSpeedRecorded*1000);
+    document.getElementById("runs").textContent=runs;
+    show("gameover");
+  }
+
+  updHUD() { document.getElementById("score").textContent=~~this.score; }
+
+  checkHit() {
+    for(const o of this.obstacles){
+      if(Math.abs(o.mesh.position.z)<1.5&&Math.abs(o.mesh.position.x-this.playerX)<1.2)return true;
+    }
+    return false;
+  }
+
+  update() {
+    if(!this.isPlaying)return;
+    this.speed+=0.0005;
+    if(this.speed>this.maxSpeedRecorded)this.maxSpeedRecorded=this.speed;
+    this.audio.setTempo(120+((this.speed-this.baseSpeed)/0.53)*80);
+    this.score+=this.speed*10; this.distance+=this.speed;
+    const s=this.speed;
+
+    // Player
+    this.playerX+=(this.targetX-this.playerX)*0.12;
+    this.player.position.x=this.playerX;
+    this.player.rotation.z=(this.targetX-this.playerX)*0.4;
+    this.player.rotation.x=Math.sin(Date.now()*0.003)*0.05;
+
+    // Road
+    this.road.forEach(r=>{r.position.z+=s;if(r.position.z>10)r.position.z-=300;});
+    this.barriers.forEach(b=>{b.position.z+=s;if(b.position.z>10)b.position.z-=300;});
+    this.markers.forEach(m=>{m.position.z+=s;if(m.position.z>10)m.position.z-=300;});
+
+    // ── NEBULA — sits at the horizon, barely moves (very slow parallax)
+    this.nebulaGroup.position.z += s * 0.04;
+    if (this.nebulaGroup.position.z > 8) this.nebulaGroup.position.z = 0;
+
+    // ── STARS — 3 layers, each with different speed + twinkle
+    const t = Date.now() * 0.001; // seconds
+
+    // NEAR — fast scroll
+    { const p = this.starsNear.geometry.attributes.position.array;
+      for(let i=0;i<p.length;i+=3){
+        p[i+2] += s * 0.55;
+        if(p[i+2] > 15){ p[i]=(Math.random()-0.5)*400; p[i+1]=40+Math.random()*100; p[i+2]=-400; }
+      }
+      this.starsNear.geometry.attributes.position.needsUpdate=true;
+    }
+
+    // MID — slow scroll + subtle twinkle via opacity
+    { const p = this.starsMid.geometry.attributes.position.array;
+      const ph = this.starsMid.geometry.attributes.phase.array;
+      const col = this.starsMid.geometry.attributes.color.array;
+      for(let i=0;i<p.length/3;i++){
+        p[i*3+2] += s * 0.18;
+        if(p[i*3+2] > 15){ p[i*3]=(Math.random()-0.5)*500; p[i*3+1]=40+Math.random()*110; p[i*3+2]=-600; }
+        // Twinkle: modulate brightness via color array (faster flicker)
+        const tw = 0.65 + 0.35 * Math.sin(t * (2.5 + ph[i] * 1.5) + ph[i]);
+        const base = col[i*3+2]; // blue channel stays reference
+        col[i*3]   = Math.min(1, col[i*3]   * tw + (1-tw)*0.3);
+        col[i*3+1] = Math.min(1, col[i*3+1] * tw + (1-tw)*0.3);
+      }
+      this.starsMid.geometry.attributes.position.needsUpdate=true;
+      this.starsMid.geometry.attributes.color.needsUpdate=true;
+    }
+
+    // FAR — almost no Z movement, just shimmer in place (like real distant stars)
+    { const p = this.starsFar.geometry.attributes.position.array;
+      const ph = this.starsFar.geometry.attributes.phase.array;
+      const col = this.starsFar.geometry.attributes.color.array;
+      for(let i=0;i<p.length/3;i++){
+        p[i*3+2] += s * 0.035; // barely moves — just enough to feel alive
+        if(p[i*3+2] > 15){ p[i*3]=(Math.random()-0.5)*600; p[i*3+1]=38+Math.random()*120; p[i*3+2]=-800; }
+        // Twinkle: slow gentle shimmer — atmospheric scintillation
+        const tw = 0.50 + 0.50 * Math.sin(t * (1.2 + ph[i] * 2.0) + ph[i] * 6.28);
+        col[i*3]   = tw;
+        col[i*3+1] = tw;
+        col[i*3+2] = Math.min(1, tw + 0.08); // very slight blue tint
+      }
+      this.starsFar.geometry.attributes.position.needsUpdate=true;
+      this.starsFar.geometry.attributes.color.needsUpdate=true;
+    }
+
+    // ── SHOOTING STARS
+    const dt = 0.016; // ~60fps frame time
+    this.shootingStars.forEach(star=>{
+      if(!star.userData.active){
+        star.userData.timer -= dt;
+        if(star.userData.timer <= 0){
+          this.spawnShootingStar(star);
+          star.userData.timer = 2 + Math.random()*4; // next spawn
+        }
+      } else {
+        star.userData.life += dt;
+        const t = star.userData.life / star.userData.maxLife;
+        // Move toward camera
+        const pos = star.geometry.attributes.position.array;
+        pos[2] += s * 0.4; pos[5] += s * 0.4;
+        star.geometry.attributes.position.needsUpdate=true;
+        // Fade out
+        star.material.opacity = Math.max(0, 0.92*(1-t*t));
+        if(t>=1){ star.userData.active=false; star.material.opacity=0; }
+      }
+    });
+
+    // ── PLANETS — fly toward camera, loop back when passed
+    this.planetGroups.forEach(p=>{
+      // Planets move at road speed * parallax factor
+      p.position.z += s * 0.22;
+      // Self-rotation (shows Jupiter red spot spinning)
+      p.rotation.y += p.userData.rotSpeed;
+      // When planet passes camera, reset far back
+      if(p.position.z > 40){
+        // Alternate which side it reappears on
+        const side = p.userData.origX > 0 ? 1 : -1;
+        p.position.x = side * (50 + Math.random()*55);
+        p.position.y = p.userData.origY + (Math.random()-0.5)*15;
+        p.position.z = -500 - Math.random()*100;
+      }
+    });
+
+    // Obstacles
+    this.spawnObstacle();
+    for(let i=this.obstacles.length-1;i>=0;i--){
+      const o=this.obstacles[i];
+      o.mesh.position.z+=s; o.mesh.rotation.y+=0.03; o.mesh.rotation.x+=0.02;
+      if(o.mesh.position.z>5){this.scene.remove(o.mesh);this.obstacles.splice(i,1);}
+    }
+
+    if(this.checkHit())this.stop();
+    this.updHUD();
+  }
+
+  onResize() {
+    this.camera.aspect=innerWidth/innerHeight; this.camera.updateProjectionMatrix();
+    this.renderer.setSize(innerWidth,innerHeight);
+  }
+
+  animate() { requestAnimationFrame(()=>this.animate()); this.update(); this.renderer.render(this.scene,this.camera); }
+}
+
+function show(name) {
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+  document.getElementById(name+"-screen").classList.add("active");
+}
+
+const game = new SnapRacerGame();
+const sndBtn=document.getElementById("snd-btn");
+sndBtn.addEventListener("click",()=>{
+  game.audio.enabled=!game.audio.enabled;
+  if(!game.audio.enabled&&game.audio.playing)game.audio.stop();
+  sndBtn.textContent=game.audio.enabled?"🔊 Sound: ON":"🔇 Sound: OFF";
+  sndBtn.classList.toggle("muted",!game.audio.enabled);
+});
+document.getElementById("start-btn").addEventListener("click",()=>{
+  if(game.audio.ctx?.state==="suspended")game.audio.ctx.resume();
+  show("game"); setTimeout(()=>game.start(),100);
+});
+document.getElementById("restart-btn").addEventListener("click",()=>{show("game");setTimeout(()=>game.start(),100);});
+document.getElementById("menu-btn").addEventListener("click",()=>{game.audio.stop();show("start");});
